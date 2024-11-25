@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" href="https://lf45p.pw/gusli.png">
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta charset="UTF-8"/>
+    <title>OpenGL 3 GLFW Рендерим текст легко</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+
+</head>
+<body style="font-size: 150%; padding: 20px; background-color: black; font-family: 'Roboto', sans-serif; font-optical-sizing: auto; font-style: normal; color: white;">	
+<div style="padding: 20px; background: radial-gradient(#001EA4, #061D7D);">
+<a href="https://lf45p.pw/" style="text-decoration: none;"><span style="background-color: brown; padding: 10px; color: white;">Стикман сайт</span></a><br>
+
+<h1 id="opengl-3-glfw-">OpenGL 3 GLFW Рендерим текст легко</h1>
+<p>Текст в OpenGL можно отображать с помощью библиотеки Freetype. К сожалению там надо много писать и код получается перегруженным. <a href="https://ravesli.com/urok-45-rendering-teksta-v-opengl/" style="color: red;">https://ravesli.com/urok-45-rendering-teksta-v-opengl/</a> &lt;-  Вот это вообще прикол ватафак
+Но что если я скажу что рендерить текст можно по другому? и это легче и проще чем в Фритайп !!!! И работать будет везде!!!</p>
+<p>Для этого нужна библиотека <a href="https://github.com/memononen/nanovg" style="color: red;">NanoVG</a>. Качяем компилируем. Если компилировать не очень хочется то можно скачать установочники для Линукса вот тут ---&gt; <a href="https://github.com/inniyah/nanovg/releases" style="color: red;">https://github.com/inniyah/nanovg/releases</a> .</p>
+<p>Теперь перейдем к коду.
+В начало добавляем следующие заголовочные файлы и параметры после всех других:</p>
+<pre><code>
+
+<span class="dts"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;GL/glew.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;GLFW/glfw3.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;stdio.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;math.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;string.h&gt;</span></span>
+
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-string">"nanovg/nanovg.h"</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">define</span> NANOVG_GL3_IMPLEMENTATION</span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-string">"nanovg/nanovg_gl.h"</span></span></span>
+</code></pre><p>Для NanoVG в код после других инициализаций...</p>
+<pre><code ><span class="hljs-keyword">const</span> <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> SCR_WIDTH = <span class="hljs-number">300</span>;
+<span class="hljs-keyword">const</span> <span class="hljs-keyword">unsigned</span> <span class="hljs-keyword">int</span> SCR_HEIGHT = <span class="hljs-number">300</span>;
+
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">processInput</span><span class="hljs-params">(GLFWwindow *window)</span>
+</span>{
+    <span class="hljs-keyword">if</span>(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, <span class="hljs-number">1</span>);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">framebuffer_size_callback</span><span class="hljs-params">(GLFWwindow* window, <span class="hljs-keyword">int</span> width, <span class="hljs-keyword">int</span> height)</span>
+</span>{
+    glViewport(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, width, height);
+}
+
+
+
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span>
+</span>{
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, <span class="hljs-number">3</span>);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, <span class="hljs-number">3</span>);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, <span class="hljs-string">"Sandbox simulation"</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>);
+    <span class="hljs-keyword">if</span> (window == <span class="hljs-literal">NULL</span>)
+    {
+        <span class="hljs-built_in">puts</span>(<span class="hljs-string">"Failed to create GLFW window"</span>);
+        glfwTerminate();
+        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    glewExperimental = GL_TRUE;
+    <span class="hljs-keyword">if</span> (glewInit() != GLEW_OK)
+    {
+        <span class="hljs-built_in">puts</span>(<span class="hljs-string">"Failed to initialize GLEW"</span>);
+        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+    } 
+
+    <span class="hljs-comment">// .................................</span>
+</code></pre><p>добавляем следующий код для проверки NanoVG:</p>
+<pre><code  >// ................................
+
+    NVGcontext* vg = nvgCreateGL3(NVG_ANTIALIAS | <span class="hljs-type">NVG_STENCIL_STROKES</span> | <span class="hljs-type">NVG_DEBUG</span>);
+    <span class="hljs-keyword">if</span> (!vg) 
+    {
+        glfwTerminate();
+        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span>;
+    }
+</code></pre><p>Укажем ему нужный шрифт для отображения:</p>
+<pre><code  >
+    <span class="hljs-keyword">int</span> <span class="hljs-keyword">font</span> = nvgCreateFont(vg, <span class="hljs-string">"default"</span>, <span class="hljs-string">"gohu.ttf"</span>)<span class="hljs-comment">;</span>
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">font</span> == <span class="hljs-number">-1</span>)
+    {
+        nvgDeleteGL3(vg)<span class="hljs-comment">;</span>
+        glfwTerminate()<span class="hljs-comment">;</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-number">-1</span><span class="hljs-comment">;</span>
+    }
+</code></pre><p>Шрифт который я поставил скачан из сайта Nerd Fonts <a href="https://www.nerdfonts.com/" style="color: red;">https://www.nerdfonts.com/</a> в каталог с моим кодом.</p>
+<p><img src="Pasted image 20241028134245.png"></p>
+<p>\ Вот такой шрифт я выбрал а вы можете выбрать другой.</p>
+<p>В цикл программы </p>
+<p><code  >while (!glfwWindowShouldClose(window)) { ... }</code></p>
+<p>После очистки фона OpenGL</p>
+<pre><code  >    {
+        processInput(<span class="hljs-name">window</span>)<span class="hljs-comment">;</span>
+        glClearColor(<span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>f, <span class="hljs-number">0.0</span>f, <span class="hljs-number">0.0</span>f)<span class="hljs-comment">;</span>
+        glClear(<span class="hljs-name">GL_COLOR_BUFFER_BIT</span>)<span class="hljs-comment">;</span>
+        // ...............
+</code></pre><p>Добавил эти строки для нашего окончательного отображения текста:</p>
+<pre><code  >
+        <span class="hljs-comment">// ...............</span>
+        <span class="hljs-selector-tag">nvgBeginFrame</span>(vg, SCR_WIDTH, SCR_HEIGHT, <span class="hljs-number">1.0</span>f);
+        <span class="hljs-selector-tag">nvgFontSize</span>(vg, <span class="hljs-number">30.0</span>f);
+        <span class="hljs-selector-tag">nvgFontFaceId</span>(vg, font);
+        <span class="hljs-selector-tag">nvgTextAlign</span>(vg, NVG_ALIGN_LEFT | NVG_ALIGN_TOP);
+        <span class="hljs-selector-tag">nvgFillColor</span>(vg, nvgRGBA(<span class="hljs-number">255</span>, <span class="hljs-number">255</span>, <span class="hljs-number">255</span>, <span class="hljs-number">255</span>));
+        <span class="hljs-selector-tag">nvgText</span>(vg, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-string">"Privet mir"</span>, NULL);
+        <span class="hljs-selector-tag">nvgEndFrame</span>(vg);
+
+        <span class="hljs-selector-tag">glfwSwapBuffers</span>(window);
+        <span class="hljs-selector-tag">glfwPollEvents</span>();
+        }
+</code></pre><p>Для компиляции надо добавить флаг -lnanovg</p>
+<pre><code  >cc  -c -o ./text<span class="hljs-selector-class">.o</span> text<span class="hljs-selector-class">.c</span> -lGL -lGLEW -lglfw -lm -lnanovg                                                           
+cc  -o ./text ./text<span class="hljs-selector-class">.o</span> -lGL -lGLEW -lglfw -lm -lnanovg                                                              
+./text
+</code ></pre><p>Вот такой результат у меня получился</p>
+<p><img src="Pasted image 20241028134849.png"></p>
+<p>Единственное так это то что русские буквы не поддерживается ну и ладно надеюси помог</p>
+<br>
+<br>
+2024-10-28
+
+<br>
+<hr>
+<br>
+ <div id="HCB_comment_box">Грузим комментарии...</div>
+ <link rel="stylesheet" type="text/css" href="https://www.htmlcommentbox.com/static/skins/bootstrap/twitter-bootstrap.css?v=0" />
+ <script type="text/javascript" id="hcb"> /*<!--*/ if(!window.hcb_user){hcb_user={};} (function(){var s=document.createElement("script"), l=hcb_user.PAGE || (""+window.location).replace(/'/g,"%27"), h="https://www.htmlcommentbox.com";s.setAttribute("type","text/javascript");s.setAttribute("src", h+"/jread?page="+encodeURIComponent(l).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24GANKG0eRpDOFKGl9I5JTY0"+"&opts=16798&num=10&ts=1730115305641");if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);})(); /*-->*/ </script>
+
+</body>
